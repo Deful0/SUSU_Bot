@@ -1,0 +1,15 @@
+Index: .env
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.env b/.env
+deleted file mode 100644
+--- a/.env	(revision 99ec6c6dde02af0e959c3f580d4ecd9b988edde0)
++++ /dev/null	(revision 99ec6c6dde02af0e959c3f580d4ecd9b988edde0)
+@@ -1,4 +0,0 @@
+-BOT_TOKEN=8418706843:AAFjoFyADD_TeQhAnkzB347MCDDe-UT1O_s
+-CHAT_ID=-1001819656550
+-# -1003109808503 (мой чат)
+-# -1001819656550 (чат вуза)
+\ No newline at end of file
