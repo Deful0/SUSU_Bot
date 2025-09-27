@@ -123,7 +123,7 @@ def send_telegram_poll(BOT_TOKEN, CHAT_ID, question, options_1, options_2, optio
                 logger.error("Максимум 10 вариантов ответа")
                 options = options[:10]
 
-        bot.send_message(CHAT_ID, "Документация к Боту: https://github.com/Deful0/SUSU_EM_BOT")
+        bot.send_message(CHAT_ID, "Документация к Боту: https://github.com/Deful0/SUSU_Bot")
         for i, options in enumerate([options_1, options_2, options_3], 1):
             poll_params = {
                 'chat_id': CHAT_ID,
