@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 import time as time_module
 from datetime import datetime, timedelta
 
-
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
@@ -14,17 +13,31 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def get_week_number(date=None):
+    """Возвращает номер недели в году (четность/нечетность)"""
+    if date is None:
+        date = datetime.now()
+    week_number = date.isocalendar()[1]
+    return week_number % 2  # 0 для четных недель, 1 для нечетных
+
+
 def main():
-    # Время отправки опросов (часы, минуты)
-    POLL_TIMES = [
-        #(7, 55),  # 7:55
-        (9, 40),  # 9:40
-        (11, 25)  # 11:25
-    ]
+    # Расписание для ЧЕТНЫХ недель (0)
+    # Среда (2) в 11:25, Четверг (3) в 11:25, Пятница (4) в 7:55
+    SCHEDULE_EVEN_WEEK = {
+        2: [(11, 25)],  # Среда
+        3: [(11, 25)],  # Четверг
+        4: [(7, 55)]  # Пятница
+    }
 
-    # Дни недели
-    TARGET_DAYS = [1, 2, 3, 4]  # Вт, Ср, Чт, Пт
-
+    # Расписание для НЕЧЕТНЫХ недель (1)
+    # Вторник (1) в 9:40, Среда (2) в 11:25, Четверг (3) в 11:25, Суббота (5) в 7:55 и 11:25
+    SCHEDULE_ODD_WEEK = {
+        1: [(9, 40)],  # Вторник
+        2: [(11, 25)],  # Среда
+        3: [(11, 25)],  # Четверг
+        4: [(7, 55), (11, 25)]  # Суббота
+    }
 
     logger.info("Бот запущен и начал мониторинг времени...")
     last_sent_time = None
@@ -32,11 +45,22 @@ def main():
     while True:
         try:
             current_time = datetime.now()
-            if should_send_poll(POLL_TIMES, TARGET_DAYS):
+            current_week_type = get_week_number(current_time)
+            current_weekday = current_time.weekday()
+
+            # Выбираем расписание в зависимости от четности недели
+            if current_week_type == 0:  # Четная неделя
+                schedule = SCHEDULE_EVEN_WEEK
+                week_type = "четная"
+            else:  # Нечетная неделя
+                schedule = SCHEDULE_ODD_WEEK
+                week_type = "нечетная"
+
+            if should_send_poll(schedule, current_weekday):
                 if (last_sent_time is None or
                         last_sent_time.strftime("%Y-%m-%d %H:%M") != current_time.strftime("%Y-%m-%d %H:%M")):
 
-                    logger.info(f"Время отправки опроса: {current_time}")
+                    logger.info(f"Время отправки опроса: {current_time} ({week_type} неделя)")
                     send_poll_once()
                     last_sent_time = current_time
 
@@ -54,15 +78,17 @@ def main():
             time_module.sleep(60)
 
 
-def should_send_poll(POLL_TIMES, TARGET_DAYS):
+def should_send_poll(schedule, current_weekday):
+    """Проверяет, нужно ли отправлять опрос по текущему расписанию"""
     now = datetime.now()
-    current_weekday = now.weekday()
     current_time = now.time()
 
-    if current_weekday not in TARGET_DAYS:
+    # Проверяем, есть ли текущий день в расписании
+    if current_weekday not in schedule:
         return False
 
-    for target_hour, target_minute in POLL_TIMES:
+    # Проверяем все времена для текущего дня
+    for target_hour, target_minute in schedule[current_weekday]:
         target_time = time(target_hour, target_minute)
         if (current_time.hour == target_time.hour and
                 current_time.minute == target_time.minute):
